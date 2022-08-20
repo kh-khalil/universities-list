@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  baseUrl: 'http://universities.hipolabs.com/',
+  baseUrl: 'http://universities.hipolabs.com',
   countriesUrl: 'https://restcountries.com/v2',
 };
 

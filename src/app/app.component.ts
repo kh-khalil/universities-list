@@ -15,11 +15,14 @@ export class AppComponent implements OnInit {
   countryFC = new FormControl();
   filteredCountries!: Observable<any[]>;
 
+  public universities!: any[];
+
   constructor(private _dataService: DataService) {
     this._dataService.countriesSubject.subscribe((countries) => {
       this.countries = countries;
     });
   }
+
   ngOnInit(): void {
     this.filteredCountries = this.countryFC.valueChanges.pipe(
       startWith(''),
@@ -28,14 +31,25 @@ export class AppComponent implements OnInit {
       )
     );
   }
+
   private _filterCountries(name: string) {
     return this.countries.filter(
       (country) => country.name.toLowerCase().indexOf(name.toLowerCase()) === 0
     );
   }
-  onSelect(evt: any) {
+
+  getUniversitiesData(evt: any) {
     if (evt.source.selected) {
-      console.log(evt.source.value);
+      let countryString = evt.source.value.split(' ');
+      console.log('countryStr', countryString);
+
+      let searchStr = countryString[0] + '+' + countryString[1];
+      console.log('searchStr', searchStr);
+
+      this._dataService.getUniversitiesData(searchStr).subscribe((res) => {
+        this.universities = res;
+        console.log('res', res);
+      });
     }
   }
 }

@@ -1,23 +1,28 @@
-<form *ngIf="countries" class="filters">
-  <mat-form-field>
-    <input
-      #countryInput
-      matInput
-      placeholder="Country"
-      aria-label="Country"
-      [matAutocomplete]="auto"
-      [formControl]="countryFC"
-    />
-    <mat-autocomplete #auto="matAutocomplete">
-      <mat-option
-        (onSelectionChange)="
-          countryInput.value != undefined && onSelect($event)
-        "
-        *ngFor="let country of filteredCountries | async"
-        [value]="country.name"
-      >
-        <span>{{ country.name }}</span>
-      </mat-option>
-    </mat-autocomplete>
-  </mat-form-field>
-</form>
+<div class="container text-center">
+  <section id="countries_autocomplete">
+    <form *ngIf="countries" class="row w-25 mx-auto mt-5">
+      <mat-form-field>
+        <input
+          #countryInput
+          matInput
+          placeholder="Country"
+          aria-label="Country"
+          [matAutocomplete]="auto"
+          [formControl]="countryFC"
+        />
+        <mat-autocomplete #auto="matAutocomplete">
+          <mat-option
+            (onSelectionChange)="
+              countryInput.value != undefined && getUniversitiesData($event)
+            "
+            *ngFor="let country of filteredCountries | async"
+            [value]="country.name"
+          >
+            <span>{{ country.name }}</span>
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+    </form>
+  </section>
+  <section id="universities_data"></section>
+</div>

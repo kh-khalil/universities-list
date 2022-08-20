@@ -25,6 +25,11 @@ export class DataService implements OnDestroy {
     return countries;
   }
 
+  getUniversitiesData(countryName: string) {
+    let params = new HttpParams().set('country', countryName);
+    return this.http.get<any[]>(`${env.baseUrl}/search`, { params: params });
+  }
+
   ngOnDestroy(): void {
     this.countriesSubject.next(null);
     this.countriesSub.unsubscribe();
