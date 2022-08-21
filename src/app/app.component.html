@@ -24,5 +24,24 @@
       </mat-form-field>
     </form>
   </section>
-  <section id="universities_data"></section>
+  <section id="universities_data" class="row">
+    <div
+      *ngFor="let uni of universities"
+      class="col-auto card"
+      style="width: 18rem"
+    >
+      <div class="card-body">
+        <h5 class="card-title">{{ uni.name }}</h5>
+        <h6 class="card-subtitle mb-2 text-muted">{{ uni.country }}</h6>
+        <!-- <p class="card-text">
+          Some quick example text to build on the card title and make up the
+          bulk of the card's content.
+        </p>
+        <a href="#" class="card-link">Card link</a> -->
+        <a [href]="uni.web_pages" target="_blank" class="card-link"
+          >University Link</a
+        >
+      </div>
+    </div>
+  </section>
 </div>
