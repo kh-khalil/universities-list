@@ -10,20 +10,25 @@ import { Observable, Subscription } from 'rxjs';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
-  title = 'universities';
+  // Public Variables
+  public title = 'universities';
   public countries!: any[];
-  countryFC = new FormControl();
-  filteredCountries!: Observable<any[]>;
-
+  public countryFC = new FormControl();
+  public filteredCountries!: Observable<any[]>;
   public universities!: any[];
 
-  constructor(private _dataService: DataService) {
+  // Private Variables
+  private searchStrIndex = 0;
+
+  /**
+   * @param _dataService Data Service
+   */
+  constructor(private _dataService: DataService) {}
+
+  ngOnInit(): void {
     this._dataService.countriesSubject.subscribe((countries) => {
       this.countries = countries;
     });
-  }
-
-  ngOnInit(): void {
     this.filteredCountries = this.countryFC.valueChanges.pipe(
       startWith(''),
       map((country) =>
@@ -32,30 +37,23 @@ export class AppComponent implements OnInit {
     );
   }
 
-  private _filterCountries(name: string) {
-    return this.countries.filter(
-      (country) => country.name.toLowerCase().indexOf(name.toLowerCase()) === 0
-    );
-  }
-
-  private searchStrIndex = 0;
-  private searchStr = '';
-
   async getUniversitiesData(evt: any) {
+    this.searchStrIndex = 0;
+    let searchStr = '';
     if (evt.source.selected) {
       let countryStrList = evt.source.value.replaceAll(',', '').split(' ');
+      searchStr = countryStrList[this.searchStrIndex];
 
-      this.searchStr = countryStrList[this.searchStrIndex];
-      for (this.searchStrIndex; this.searchStrIndex <= 4; ) {
-        this.concatSerachStr(countryStrList);
+      for (this.searchStrIndex; this.searchStrIndex < 3; ) {
+        searchStr = this.concatSerachStr(countryStrList, searchStr);
         await this._dataService
-          .getUniversitiesData(this.searchStr)
+          .getUniversitiesData(searchStr)
           .toPromise()
           .then((res) => {
             if (res[0]) {
               this.universities = res;
               this.searchStrIndex = 0;
-              this.searchStr = '';
+              searchStr = '';
             } else {
               this.searchStrIndex++;
               console.error(
@@ -71,13 +69,22 @@ export class AppComponent implements OnInit {
       this.universities = [];
     }
   }
-  private concatSerachStr(countryStrList: string) {
+
+  //#region Private Helper Functions
+  private _filterCountries(name: string) {
+    return this.countries.filter(
+      (country) => country.name.toLowerCase().indexOf(name.toLowerCase()) === 0
+    );
+  }
+  private concatSerachStr(countryStrList: string, searchStr: string) {
     if (
       this.searchStrIndex > 0 &&
       countryStrList[this.searchStrIndex] &&
       countryStrList[this.searchStrIndex][0] != '('
     ) {
-      this.searchStr += '+' + countryStrList[this.searchStrIndex];
+      return searchStr + '+' + countryStrList[this.searchStrIndex];
     }
+    return searchStr;
   }
+  //#endregion
 }
