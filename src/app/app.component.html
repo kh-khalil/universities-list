@@ -1,6 +1,9 @@
 <div class="container text-center">
   <section id="countries_autocomplete">
-    <form *ngIf="countries" class="row w-25 mx-auto mt-5">
+    <form
+      *ngIf="countries; else loadingCountries"
+      class="row w-25 mx-auto mt-5"
+    >
       <mat-form-field>
         <input
           #countryInput
@@ -23,25 +26,44 @@
         </mat-autocomplete>
       </mat-form-field>
     </form>
+    <ng-template #loadingCountries>
+      <h1 class="row w-25 mx-auto mt-5">Loading Countries...</h1>
+    </ng-template>
   </section>
   <section id="universities_data" class="row">
-    <div
-      *ngFor="let uni of universities"
-      class="col-auto card"
-      style="width: 18rem"
-    >
-      <div class="card-body">
-        <h5 class="card-title">{{ uni.name }}</h5>
-        <h6 class="card-subtitle mb-2 text-muted">{{ uni.country }}</h6>
-        <!-- <p class="card-text">
-          Some quick example text to build on the card title and make up the
-          bulk of the card's content.
-        </p>
-        <a href="#" class="card-link">Card link</a> -->
-        <a [href]="uni.web_pages" target="_blank" class="card-link"
-          >University Link</a
+    <!-- <ng-container *ngIf="universities; else noUniversities"> -->
+    <ng-container *ngIf="countrySelected; else noCountrySelected">
+      <ng-container *ngIf="dataLoaded; else loadingUniversities">
+        <div
+          *ngFor="let uni of universities"
+          class="col-auto card"
+          style="width: 18rem"
         >
-      </div>
-    </div>
+          <div class="card-body">
+            <h5 class="card-title">{{ uni.name }}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">{{ uni.country }}</h6>
+            <!-- <p class="card-text">
+            Some quick example text to build on the card title and make up the
+            bulk of the card's content.
+          </p>
+          <a href="#" class="card-link">Card link</a> -->
+            <a [href]="uni.web_pages" target="_blank" class="card-link">
+              University Link
+            </a>
+          </div>
+        </div>
+      </ng-container>
+      <ng-template #loadingUniversities>
+        <ng-container *ngIf="!noUniversitiesFound; else noUniFound">
+          <h3>Loading universities...</h3>
+        </ng-container>
+        <ng-template #noUniFound>
+          <h3>No Universities Found!</h3>
+        </ng-template>
+      </ng-template>
+    </ng-container>
+    <ng-template #noCountrySelected>
+      <h3>Please select a country!</h3>
+    </ng-template>
   </section>
 </div>

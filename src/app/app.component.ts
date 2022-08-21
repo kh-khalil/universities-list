@@ -16,6 +16,9 @@ export class AppComponent implements OnInit {
   public countryFC = new FormControl();
   public filteredCountries!: Observable<any[]>;
   public universities!: any[];
+  public dataLoaded!: boolean;
+  public countrySelected = false;
+  public noUniversitiesFound!: boolean;
 
   // Private Variables
   private searchStrIndex = 0;
@@ -38,6 +41,9 @@ export class AppComponent implements OnInit {
   }
 
   async getUniversitiesData(evt: any) {
+    this.countrySelected = true;
+    this.dataLoaded = false;
+    this.noUniversitiesFound = false;
     this.searchStrIndex = 0;
     let searchStr = '';
     if (evt.source.selected) {
@@ -54,8 +60,12 @@ export class AppComponent implements OnInit {
               this.universities = res;
               this.searchStrIndex = 0;
               searchStr = '';
+              this.dataLoaded = true;
+              this.noUniversitiesFound = false;
             } else {
               this.searchStrIndex++;
+              this.dataLoaded = false;
+              // this.noUniversitiesFound = true;
               console.error(
                 `No Data Found, retrying request for ${
                   this.searchStrIndex + 1
@@ -65,8 +75,10 @@ export class AppComponent implements OnInit {
           });
         if (this.searchStrIndex === 0) break;
       }
+      if (this.searchStrIndex === 3) this.noUniversitiesFound = true;
     } else {
       this.universities = [];
+      this.dataLoaded = false;
     }
   }
 
