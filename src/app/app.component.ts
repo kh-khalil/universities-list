@@ -9,12 +9,11 @@ import { Observable, Subscription } from 'rxjs';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent implements OnInit, OnDestroy {
+export class AppComponent implements OnInit {
   title = 'universities';
   public countries!: any[];
   countryFC = new FormControl();
   filteredCountries!: Observable<any[]>;
-  uniSub = new Subscription();
 
   public universities!: any[];
 
@@ -42,56 +41,43 @@ export class AppComponent implements OnInit, OnDestroy {
   private searchStrIndex = 0;
   private searchStr = '';
 
-  getUniversitiesData(evt: any) {
-    console.log('evt', evt);
+  async getUniversitiesData(evt: any) {
     if (evt.source.selected) {
       let countryStrList = evt.source.value.replaceAll(',', '').split(' ');
-      console.log('countryStr', countryStrList);
 
       this.searchStr = countryStrList[this.searchStrIndex];
-
-      this.uniSub = this._dataService
-        .getUniversitiesData(this.searchStr)
-        .subscribe((res) => {
-          if (res[0]) {
-            this.universities = res;
-            console.log('res', res);
-            this.searchStrIndex = 0;
-            this.searchStr = '';
-          } else {
-            console.error(
-              'No Data Found, retrying request with different search string...'
-            );
-            this.searchStrIndex++;
-            this.retry_getUniversitiesData(countryStrList);
-          }
-        });
+      for (this.searchStrIndex; this.searchStrIndex <= 4; ) {
+        this.concatSerachStr(countryStrList);
+        await this._dataService
+          .getUniversitiesData(this.searchStr)
+          .toPromise()
+          .then((res) => {
+            if (res[0]) {
+              this.universities = res;
+              this.searchStrIndex = 0;
+              this.searchStr = '';
+            } else {
+              this.searchStrIndex++;
+              console.error(
+                `No Data Found, retrying request for ${
+                  this.searchStrIndex + 1
+                } time with different search string...`
+              );
+            }
+          });
+        if (this.searchStrIndex === 0) break;
+      }
     } else {
       this.universities = [];
     }
   }
-
-  retry_getUniversitiesData(countryStrList: string) {
+  private concatSerachStr(countryStrList: string) {
     if (
+      this.searchStrIndex > 0 &&
       countryStrList[this.searchStrIndex] &&
       countryStrList[this.searchStrIndex][0] != '('
     ) {
-      this.searchStr += '+' + countryStrList[1];
+      this.searchStr += '+' + countryStrList[this.searchStrIndex];
     }
-    console.log('this.searchStr', this.searchStr);
-
-    this._dataService.getUniversitiesData(this.searchStr).subscribe((res) => {
-      if (res[0]) {
-        this.universities = res;
-        console.log('res', res);
-      } else {
-        console.error(
-          'No Data Found, retrying request with different search string...'
-        );
-      }
-    });
-  }
-  ngOnDestroy(): void {
-    this.uniSub.unsubscribe();
   }
 }
