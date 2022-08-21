@@ -30,10 +30,11 @@
       <h1 class="row w-25 mx-auto mt-5">Loading Countries...</h1>
     </ng-template>
   </section>
-  <section id="filtering">
+  <section id="filtering" class="row w-25 mx-auto">
     <mat-form-field appearance="fill">
       <mat-label>Filter by:</mat-label>
       <mat-select
+        #filterSelectbox
         [formControl]="filterFC"
         (selectionChange)="onFilterChange($event)"
       >
@@ -43,13 +44,22 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
+    <mat-form-field *ngIf="filterSelectbox.value === 'Name'" appearance="fill">
+      <mat-label>Name</mat-label>
+      <input
+        matInput
+        placeholder="Enter a name"
+        [formControl]="nameFC"
+        #nameInput
+      />
+    </mat-form-field>
   </section>
-  <section id="universities_data" class="row">
+  <section id="universities_data" class="row justify-content-around">
     <ng-container *ngIf="countrySelected; else noCountrySelected">
       <ng-container *ngIf="dataLoaded; else loadingUniversities">
         <div
           *ngFor="let uni of filteredUniversities"
-          class="col-auto card"
+          class="col-auto card my-3"
           style="width: 18rem"
         >
           <div class="card-body">

@@ -15,13 +15,14 @@ export class AppComponent implements OnInit {
   public countries!: any[];
   public countryFC = new FormControl();
   public filterFC = new FormControl();
+  public nameFC = new FormControl();
   public filteredCountries!: Observable<any[]>;
   public universities!: any[];
   public filteredUniversities!: any[];
   public dataLoaded!: boolean;
   public countrySelected = false;
   public noUniversitiesFound!: boolean;
-  public filters = ['Contains Multiple Domains', 'Secure Website'];
+  public filters = ['Name', 'Contains Multiple Domains', 'Secure Website'];
 
   // Private Variables
   private searchStrIndex = 0;
@@ -90,6 +91,15 @@ export class AppComponent implements OnInit {
 
   onFilterChange(e: any) {
     switch (e.value) {
+      case 'Name':
+        this.nameFC.valueChanges.subscribe((value) => {
+          this.filteredUniversities = this.universities.filter(
+            (uni) => uni.name.toLowerCase().indexOf(value.toLowerCase()) === 0
+          );
+          console.log('case Name:', this.filteredUniversities);
+        });
+        break;
+
       case 'Contains Multiple Domains':
         this.filteredUniversities = this.universities.filter(
           (uni) => uni.domains.length > 1
