@@ -14,6 +14,7 @@ export class AppComponent implements OnInit {
   public title = 'universities';
   public countries!: any[];
   public countryFC = new FormControl();
+  public filterFC = new FormControl();
   public filteredCountries!: Observable<any[]>;
   public universities!: any[];
   public filteredUniversities!: any[];
@@ -43,6 +44,7 @@ export class AppComponent implements OnInit {
   }
 
   async getUniversitiesData(evt: any) {
+    this.filterFC.setValue('default');
     this.countrySelected = true;
     this.dataLoaded = false;
     this.noUniversitiesFound = false;
@@ -87,8 +89,6 @@ export class AppComponent implements OnInit {
   }
 
   onFilterChange(e: any) {
-    console.log('e:', e);
-
     switch (e.value) {
       case 'Contains Multiple Domains':
         this.filteredUniversities = this.universities.filter(
@@ -108,6 +108,14 @@ export class AppComponent implements OnInit {
         this.filteredUniversities = this.universities;
         console.log('case default:', this.filteredUniversities);
         break;
+    }
+
+    if (this.filteredUniversities[0]) {
+      this.dataLoaded = true;
+      this.noUniversitiesFound = false;
+    } else {
+      this.dataLoaded = false;
+      this.noUniversitiesFound = true;
     }
   }
 

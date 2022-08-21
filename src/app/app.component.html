@@ -33,8 +33,11 @@
   <section id="filtering">
     <mat-form-field appearance="fill">
       <mat-label>Filter by:</mat-label>
-      <mat-select (selectionChange)="onFilterChange($event)">
-        <mat-option>---select a filter---</mat-option>
+      <mat-select
+        [formControl]="filterFC"
+        (selectionChange)="onFilterChange($event)"
+      >
+        <mat-option value="default" selected>All</mat-option>
         <mat-option *ngFor="let filter of filters" [value]="filter">
           {{ filter }}
         </mat-option>
