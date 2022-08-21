@@ -30,25 +30,39 @@
       <h1 class="row w-25 mx-auto mt-5">Loading Countries...</h1>
     </ng-template>
   </section>
+  <section id="filtering">
+    <mat-form-field appearance="fill">
+      <mat-label>Filter by:</mat-label>
+      <mat-select (selectionChange)="onFilterChange($event)">
+        <mat-option>---select a filter---</mat-option>
+        <mat-option *ngFor="let filter of filters" [value]="filter">
+          {{ filter }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </section>
   <section id="universities_data" class="row">
-    <!-- <ng-container *ngIf="universities; else noUniversities"> -->
     <ng-container *ngIf="countrySelected; else noCountrySelected">
       <ng-container *ngIf="dataLoaded; else loadingUniversities">
         <div
-          *ngFor="let uni of universities"
+          *ngFor="let uni of filteredUniversities"
           class="col-auto card"
           style="width: 18rem"
         >
           <div class="card-body">
-            <h5 class="card-title">{{ uni.name }}</h5>
-            <h6 class="card-subtitle mb-2 text-muted">{{ uni.country }}</h6>
-            <!-- <p class="card-text">
-            Some quick example text to build on the card title and make up the
-            bulk of the card's content.
-          </p>
-          <a href="#" class="card-link">Card link</a> -->
-            <a [href]="uni.web_pages" target="_blank" class="card-link">
-              University Link
+            <h4 class="card-title">{{ uni.name }}</h4>
+            <h5 class="card-subtitle mb-2 text-muted">
+              Country: {{ uni.country }}
+            </h5>
+            <h5 class="card-subtitle mb-2 text-muted">
+              Domains:
+              <span *ngFor="let domain of uni.domains; let last = last">
+                {{ domain }}<span *ngIf="!last">, </span>
+              </span>
+            </h5>
+            <span *ngIf="uni.web_pages[0].match('https') != null">🔐 </span>
+            <a [href]="uni.web_pages[0]" target="_blank" class="card-link">
+              Website
             </a>
           </div>
         </div>

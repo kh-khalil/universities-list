@@ -16,9 +16,11 @@ export class AppComponent implements OnInit {
   public countryFC = new FormControl();
   public filteredCountries!: Observable<any[]>;
   public universities!: any[];
+  public filteredUniversities!: any[];
   public dataLoaded!: boolean;
   public countrySelected = false;
   public noUniversitiesFound!: boolean;
+  public filters = ['Contains Multiple Domains', 'Secure Website'];
 
   // Private Variables
   private searchStrIndex = 0;
@@ -58,6 +60,7 @@ export class AppComponent implements OnInit {
           .then((res) => {
             if (res[0]) {
               this.universities = res;
+              this.filteredUniversities = this.universities;
               this.searchStrIndex = 0;
               searchStr = '';
               this.dataLoaded = true;
@@ -78,7 +81,33 @@ export class AppComponent implements OnInit {
       if (this.searchStrIndex === 3) this.noUniversitiesFound = true;
     } else {
       this.universities = [];
+      this.filteredUniversities = [];
       this.dataLoaded = false;
+    }
+  }
+
+  onFilterChange(e: any) {
+    console.log('e:', e);
+
+    switch (e.value) {
+      case 'Contains Multiple Domains':
+        this.filteredUniversities = this.universities.filter(
+          (uni) => uni.domains.length > 1
+        );
+        console.log('case Mulitple Domains:', this.filteredUniversities);
+        break;
+
+      case 'Secure Website':
+        this.filteredUniversities = this.universities.filter(
+          (uni) => uni.web_pages[0].match('https') != null
+        );
+        console.log('case secure website:', this.filteredUniversities);
+        break;
+
+      default:
+        this.filteredUniversities = this.universities;
+        console.log('case default:', this.filteredUniversities);
+        break;
     }
   }
 
