@@ -60,14 +60,27 @@
         />
       </mat-form-field>
 
-      <h3 class="col-12">Results: {{ filteredUniversities?.length }}</h3>
+      <h3 class="col-12">Results: {{ uniLength }}</h3>
     </div>
   </section>
+
+  <section id="paginator">
+    <mat-paginator
+      #paginator
+      [length]="uniLength"
+      [pageSize]="itemsPerPage"
+      [pageSizeOptions]="pageSizeOptions"
+      (page)="handlePageEvent($event)"
+      aria-label="Select page"
+    >
+    </mat-paginator>
+  </section>
+
   <section id="universities_data" class="row justify-content-around">
     <ng-container *ngIf="countrySelected; else noCountrySelected">
       <ng-container *ngIf="dataLoaded; else loadingUniversities">
         <div
-          *ngFor="let uni of filteredUniversities"
+          *ngFor="let uni of pagedFilteredUniversities"
           class="col-auto card my-3"
           style="width: 18rem"
         >

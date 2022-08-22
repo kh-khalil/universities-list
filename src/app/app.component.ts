@@ -1,9 +1,10 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { DataService } from './services/data.service';
 import { map, startWith } from 'rxjs/operators';
 import { FormControl } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
 import { Country, University } from './models';
+import { MatPaginator } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-root',
@@ -21,8 +22,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   // Universities Variables
   public universities!: University[];
-  public filteredUniversities!: University[];
   public noUniversitiesFound!: boolean;
+  public uniLength!: number;
 
   // Filters Variables
   public filterFC = new FormControl();
@@ -50,6 +51,7 @@ export class AppComponent implements OnInit, OnDestroy {
    */
   async getUniversitiesData(evt: any) {
     this.filterFC.setValue('default');
+    this.paginator.firstPage();
     this.countrySelected = true;
     this.dataLoaded = false;
     this.noUniversitiesFound = false;
@@ -88,7 +90,11 @@ export class AppComponent implements OnInit, OnDestroy {
           .then((res) => {
             if (res[0]) {
               this.universities = res;
-              this.filteredUniversities = this.universities;
+              this.uniLength = this.universities.length;
+              this.pagedFilteredUniversities = this.universities.slice(
+                0,
+                this.itemsPerPage
+              );
               this.searchStrIndex = 0;
               searchStr = '';
               this.dataLoaded = true;
@@ -108,7 +114,7 @@ export class AppComponent implements OnInit, OnDestroy {
       if (this.searchStrIndex === 3) this.noUniversitiesFound = true;
     } else {
       this.universities = [];
-      this.filteredUniversities = [];
+      this.pagedFilteredUniversities = [];
       this.dataLoaded = false;
     }
   }
@@ -119,33 +125,61 @@ export class AppComponent implements OnInit, OnDestroy {
    * @returns filterdUniversities[]
    */
   onFilterChange(e: any) {
+    this.paginator.firstPage();
+
+    let filteredUniversities;
     switch (e.value) {
       case 'Name':
         this.uniNameFCSub = this.uniNameFC.valueChanges.subscribe((value) => {
-          this.filteredUniversities = this.universities.filter(
-            (uni) => uni.name.toLowerCase().indexOf(value.toLowerCase()) === 0
+          filteredUniversities = this.universities.filter(
+            (uni) => uni.name.toLowerCase().indexOf(value?.toLowerCase()) === 0
+          );
+          this.uniLength = filteredUniversities.length;
+          this.pagedFilteredUniversities = filteredUniversities.slice(
+            0,
+            this.itemsPerPage
           );
         });
         break;
 
       case 'Contains Multiple Domains':
-        this.filteredUniversities = this.universities.filter(
+        this.uniNameFC.reset();
+        filteredUniversities = this.universities.filter(
           (uni) => uni.domains.length > 1
+        );
+        this.uniLength = filteredUniversities.length;
+
+        this.pagedFilteredUniversities = filteredUniversities.slice(
+          0,
+          this.itemsPerPage
         );
         break;
 
       case 'Secure Website':
-        this.filteredUniversities = this.universities.filter(
+        this.uniNameFC.reset();
+        filteredUniversities = this.universities.filter(
           (uni) => uni.web_pages[0].match('https') != null
+        );
+        this.uniLength = filteredUniversities.length;
+
+        this.pagedFilteredUniversities = filteredUniversities.slice(
+          0,
+          this.itemsPerPage
         );
         break;
 
       default:
-        this.filteredUniversities = this.universities;
+        this.uniNameFC.reset();
+        filteredUniversities = this.universities;
+        this.pagedFilteredUniversities = this.universities.slice(
+          0,
+          this.itemsPerPage
+        );
+        this.uniLength = filteredUniversities.length;
         break;
     }
 
-    if (this.filteredUniversities[0]) {
+    if (this.pagedFilteredUniversities[0]) {
       this.dataLoaded = true;
       this.noUniversitiesFound = false;
     } else {
@@ -190,5 +224,32 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.uniNameFCSub.unsubscribe();
+  }
+
+  // public requestedPageIndex!: Observable<number>;
+  public itemsPerPage = 10;
+  public pageSizeOptions = [10, 25, 50, 100];
+  public pagedFilteredUniversities!: University[];
+  @ViewChild('paginator') paginator!: MatPaginator;
+
+  handlePageEvent(event: any) {
+    this.countrySelected = true;
+    this.dataLoaded = false;
+    this.noUniversitiesFound = false;
+    console.log('paginator event:', event);
+    // this.requestedPageIndex = event.pageIndex;
+    this.itemsPerPage = event.pageSize;
+    // console.log('req page', this.requestedPageIndex);
+
+    const len = this.pagedFilteredUniversities.length;
+
+    setTimeout(() => {
+      this.dataLoaded = true;
+      this.pagedFilteredUniversities = this.universities.slice(
+        len,
+        this.itemsPerPage + len
+      );
+      console.log('pagedFilteredUniversities', this.pagedFilteredUniversities);
+    }, 200);
   }
 }
