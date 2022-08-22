@@ -13,6 +13,7 @@ import { MatPaginator } from '@angular/material/paginator';
 })
 export class AppComponent implements OnInit, OnDestroy {
   public title = 'universities';
+  @ViewChild('paginator') paginator!: MatPaginator;
 
   // Countries Variables
   public countries!: Country[];
@@ -22,6 +23,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   // Universities Variables
   public universities!: University[];
+  public pagedFilteredUniversities!: University[];
+  public filteredUniversities!: University[];
   public noUniversitiesFound!: boolean;
   public uniLength!: number;
 
@@ -33,6 +36,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   public dataLoaded!: boolean;
   private searchStrIndex = 0;
+  public itemsPerPage = 10;
+  public pageSizeOptions = [10, 25, 50, 100];
 
   constructor(private _dataService: DataService) {}
 
@@ -91,6 +96,7 @@ export class AppComponent implements OnInit, OnDestroy {
             if (res[0]) {
               this.universities = res;
               this.uniLength = this.universities.length;
+              this.filteredUniversities = this.universities;
               this.pagedFilteredUniversities = this.universities.slice(
                 0,
                 this.itemsPerPage
@@ -127,15 +133,15 @@ export class AppComponent implements OnInit, OnDestroy {
   onFilterChange(e: any) {
     this.paginator.firstPage();
 
-    let filteredUniversities;
     switch (e.value) {
       case 'Name':
         this.uniNameFCSub = this.uniNameFC.valueChanges.subscribe((value) => {
-          filteredUniversities = this.universities.filter(
+          this.paginator.firstPage();
+          this.filteredUniversities = this.universities.filter(
             (uni) => uni.name.toLowerCase().indexOf(value?.toLowerCase()) === 0
           );
-          this.uniLength = filteredUniversities.length;
-          this.pagedFilteredUniversities = filteredUniversities.slice(
+          this.uniLength = this.filteredUniversities.length;
+          this.pagedFilteredUniversities = this.filteredUniversities.slice(
             0,
             this.itemsPerPage
           );
@@ -144,12 +150,12 @@ export class AppComponent implements OnInit, OnDestroy {
 
       case 'Contains Multiple Domains':
         this.uniNameFC.reset();
-        filteredUniversities = this.universities.filter(
+        this.filteredUniversities = this.universities.filter(
           (uni) => uni.domains.length > 1
         );
-        this.uniLength = filteredUniversities.length;
+        this.uniLength = this.filteredUniversities.length;
 
-        this.pagedFilteredUniversities = filteredUniversities.slice(
+        this.pagedFilteredUniversities = this.filteredUniversities.slice(
           0,
           this.itemsPerPage
         );
@@ -157,12 +163,12 @@ export class AppComponent implements OnInit, OnDestroy {
 
       case 'Secure Website':
         this.uniNameFC.reset();
-        filteredUniversities = this.universities.filter(
+        this.filteredUniversities = this.universities.filter(
           (uni) => uni.web_pages[0].match('https') != null
         );
-        this.uniLength = filteredUniversities.length;
+        this.uniLength = this.filteredUniversities.length;
 
-        this.pagedFilteredUniversities = filteredUniversities.slice(
+        this.pagedFilteredUniversities = this.filteredUniversities.slice(
           0,
           this.itemsPerPage
         );
@@ -170,12 +176,12 @@ export class AppComponent implements OnInit, OnDestroy {
 
       default:
         this.uniNameFC.reset();
-        filteredUniversities = this.universities;
+        this.filteredUniversities = this.universities;
         this.pagedFilteredUniversities = this.universities.slice(
           0,
           this.itemsPerPage
         );
-        this.uniLength = filteredUniversities.length;
+        this.uniLength = this.filteredUniversities.length;
         break;
     }
 
@@ -186,6 +192,21 @@ export class AppComponent implements OnInit, OnDestroy {
       this.dataLoaded = false;
       this.noUniversitiesFound = true;
     }
+  }
+
+  handlePageEvent(event: any) {
+    this.countrySelected = true;
+    this.dataLoaded = false;
+    this.noUniversitiesFound = false;
+    this.itemsPerPage = event.pageSize;
+
+    setTimeout(() => {
+      this.dataLoaded = true;
+      this.pagedFilteredUniversities = this.filteredUniversities.slice(
+        event.pageIndex * this.itemsPerPage,
+        (event.pageIndex + 1) * this.itemsPerPage
+      );
+    }, 350);
   }
 
   //#region Private Helper Functions
@@ -224,32 +245,5 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.uniNameFCSub.unsubscribe();
-  }
-
-  // public requestedPageIndex!: Observable<number>;
-  public itemsPerPage = 10;
-  public pageSizeOptions = [10, 25, 50, 100];
-  public pagedFilteredUniversities!: University[];
-  @ViewChild('paginator') paginator!: MatPaginator;
-
-  handlePageEvent(event: any) {
-    this.countrySelected = true;
-    this.dataLoaded = false;
-    this.noUniversitiesFound = false;
-    console.log('paginator event:', event);
-    // this.requestedPageIndex = event.pageIndex;
-    this.itemsPerPage = event.pageSize;
-    // console.log('req page', this.requestedPageIndex);
-
-    const len = this.pagedFilteredUniversities.length;
-
-    setTimeout(() => {
-      this.dataLoaded = true;
-      this.pagedFilteredUniversities = this.universities.slice(
-        len,
-        this.itemsPerPage + len
-      );
-      console.log('pagedFilteredUniversities', this.pagedFilteredUniversities);
-    }, 200);
   }
 }

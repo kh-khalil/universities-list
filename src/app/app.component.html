@@ -64,12 +64,14 @@
     </div>
   </section>
 
-  <section id="paginator">
+  <section id="paginator" class="row">
     <mat-paginator
+      class="col-auto mx-auto"
       #paginator
       [length]="uniLength"
       [pageSize]="itemsPerPage"
       [pageSizeOptions]="pageSizeOptions"
+      [showFirstLastButtons]="true"
       (page)="handlePageEvent($event)"
       aria-label="Select page"
     >
