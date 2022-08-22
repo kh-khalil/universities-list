@@ -2,6 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment as env } from 'src/environments/environment';
 import { BehaviorSubject, Subscription, Observable } from 'rxjs';
+import { University } from '../models';
 
 @Injectable({
   providedIn: 'root',
@@ -27,7 +28,9 @@ export class DataService implements OnDestroy {
 
   getUniversitiesData(countryName: string) {
     let params = new HttpParams().set('country', countryName);
-    return this.http.get<any[]>(`${env.baseUrl}/search`, { params: params });
+    return this.http.get<University[]>(`${env.baseUrl}/search`, {
+      params: params,
+    });
   }
 
   ngOnDestroy(): void {

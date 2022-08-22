@@ -3,6 +3,7 @@ import { DataService } from './services/data.service';
 import { map, startWith } from 'rxjs/operators';
 import { FormControl } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
+import { Country, University } from './models';
 
 @Component({
   selector: 'app-root',
@@ -13,20 +14,20 @@ export class AppComponent implements OnInit, OnDestroy {
   public title = 'universities';
 
   // Countries Variables
-  public countries!: any[];
+  public countries!: Country[];
   public countryFC = new FormControl();
-  public filteredCountries!: Observable<any[]>;
+  public filteredCountries!: Observable<Country[]>;
   public countrySelected = false;
 
   // Universities Variables
-  public universities!: any[];
-  public filteredUniversities!: any[];
+  public universities!: University[];
+  public filteredUniversities!: University[];
   public noUniversitiesFound!: boolean;
 
   // Filters Variables
   public filterFC = new FormControl();
-  public nameFC = new FormControl();
-  public nameFCSub = new Subscription();
+  public uniNameFC = new FormControl();
+  public uniNameFCSub = new Subscription();
   public filters = ['Name', 'Contains Multiple Domains', 'Secure Website'];
 
   public dataLoaded!: boolean;
@@ -120,7 +121,7 @@ export class AppComponent implements OnInit, OnDestroy {
   onFilterChange(e: any) {
     switch (e.value) {
       case 'Name':
-        this.nameFCSub = this.nameFC.valueChanges.subscribe((value) => {
+        this.uniNameFCSub = this.uniNameFC.valueChanges.subscribe((value) => {
           this.filteredUniversities = this.universities.filter(
             (uni) => uni.name.toLowerCase().indexOf(value.toLowerCase()) === 0
           );
@@ -188,6 +189,6 @@ export class AppComponent implements OnInit, OnDestroy {
   //#endregion
 
   ngOnDestroy(): void {
-    this.nameFCSub.unsubscribe();
+    this.uniNameFCSub.unsubscribe();
   }
 }
