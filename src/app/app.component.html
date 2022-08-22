@@ -1,10 +1,10 @@
 <div class="container text-center">
-  <section id="countries_autocomplete">
+  <section id="countries_autocomplete" class="row mt-5">
     <form
       *ngIf="countries; else loadingCountries"
-      class="row w-25 mx-auto mt-5"
+      class="col-md-6 col-lg-4 mx-auto"
     >
-      <mat-form-field>
+      <mat-form-field class="col-12">
         <input
           #countryInput
           matInput
@@ -27,32 +27,41 @@
       </mat-form-field>
     </form>
     <ng-template #loadingCountries>
-      <h1 class="row w-25 mx-auto mt-5">Loading Countries...</h1>
+      <h3 class="col-md-6 col-lg-4 mx-auto">Loading Countries...</h3>
     </ng-template>
   </section>
-  <section id="filtering" class="row w-25 mx-auto">
-    <mat-form-field appearance="fill">
-      <mat-label>Filter by:</mat-label>
-      <mat-select
-        #filterSelectbox
-        [formControl]="filterFC"
-        (selectionChange)="onFilterChange($event)"
+  <section id="filtering" class="row">
+    <div class="col-md-6 col-lg-4 mx-auto">
+      <mat-form-field appearance="fill" class="col-12">
+        <mat-label>Filter by:</mat-label>
+        <mat-select
+          #filterSelectbox
+          [formControl]="filterFC"
+          (selectionChange)="onFilterChange($event)"
+        >
+          <mat-option value="default" selected>All</mat-option>
+          <mat-option *ngFor="let filter of filters" [value]="filter">
+            {{ filter }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field
+        class="col-12"
+        *ngIf="filterSelectbox.value === 'Name'"
+        appearance="fill"
       >
-        <mat-option value="default" selected>All</mat-option>
-        <mat-option *ngFor="let filter of filters" [value]="filter">
-          {{ filter }}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field *ngIf="filterSelectbox.value === 'Name'" appearance="fill">
-      <mat-label>Name</mat-label>
-      <input
-        matInput
-        placeholder="Enter a name"
-        [formControl]="nameFC"
-        #nameInput
-      />
-    </mat-form-field>
+        <mat-label>Name</mat-label>
+        <input
+          matInput
+          placeholder="Enter a name"
+          [formControl]="nameFC"
+          #nameInput
+        />
+      </mat-form-field>
+
+      <h3 class="col-12">Results: {{ filteredUniversities?.length }}</h3>
+    </div>
   </section>
   <section id="universities_data" class="row justify-content-around">
     <ng-container *ngIf="countrySelected; else noCountrySelected">
@@ -62,16 +71,14 @@
           class="col-auto card my-3"
           style="width: 18rem"
         >
-          <div class="card-body">
-            <h4 class="card-title">{{ uni.name }}</h4>
-            <h5 class="card-subtitle mb-2 text-muted">
+          <div class="card-body px-0">
+            <h2 class="card-title">{{ uni.name }}</h2>
+            <!-- <h5 class="card-subtitle mb-2 text-muted">
               Country: {{ uni.country }}
-            </h5>
-            <h5 class="card-subtitle mb-2 text-muted">
-              Domains:
-              <span *ngFor="let domain of uni.domains; let last = last">
-                {{ domain }}<span *ngIf="!last">, </span>
-              </span>
+            </h5> -->
+            <h3 class="card-subtitle mb-2 text-muted">Domains:</h3>
+            <h5 *ngFor="let domain of uni.domains; let last = last">
+              {{ domain }}<span *ngIf="!last">, </span>
             </h5>
             <span *ngIf="uni.web_pages[0].match('https') != null">🔐 </span>
             <a [href]="uni.web_pages[0]" target="_blank" class="card-link">

@@ -9,41 +9,44 @@ import { Observable, Subscription } from 'rxjs';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent implements OnInit {
-  // Public Variables
+export class AppComponent implements OnInit, OnDestroy {
   public title = 'universities';
+
+  // Countries Variables
   public countries!: any[];
   public countryFC = new FormControl();
-  public filterFC = new FormControl();
-  public nameFC = new FormControl();
   public filteredCountries!: Observable<any[]>;
+  public countrySelected = false;
+
+  // Universities Variables
   public universities!: any[];
   public filteredUniversities!: any[];
-  public dataLoaded!: boolean;
-  public countrySelected = false;
   public noUniversitiesFound!: boolean;
+
+  // Filters Variables
+  public filterFC = new FormControl();
+  public nameFC = new FormControl();
+  public nameFCSub = new Subscription();
   public filters = ['Name', 'Contains Multiple Domains', 'Secure Website'];
 
-  // Private Variables
+  public dataLoaded!: boolean;
   private searchStrIndex = 0;
 
-  /**
-   * @param _dataService Data Service
-   */
   constructor(private _dataService: DataService) {}
 
   ngOnInit(): void {
-    this._dataService.countriesSubject.subscribe((countries) => {
-      this.countries = countries;
-    });
-    this.filteredCountries = this.countryFC.valueChanges.pipe(
-      startWith(''),
-      map((country) =>
-        country ? this._filterCountries(country) : this.countries.slice()
-      )
-    );
+    this.getCountries();
+    this.filteredCountries = this.dynamicallyFilterCountries();
   }
 
+  /**
+   *
+   * @param evt onCountrySelection Event
+   * Populating universites for a given country as requested.
+   *
+   * Due to dealing with 2 different APIs, countries names from 'countries API' are manipulated to get the correct data from 'y'
+   *
+   */
   async getUniversitiesData(evt: any) {
     this.filterFC.setValue('default');
     this.countrySelected = true;
@@ -52,9 +55,30 @@ export class AppComponent implements OnInit {
     this.searchStrIndex = 0;
     let searchStr = '';
     if (evt.source.selected) {
+      /**
+       * Due to countries API, some of the records have "," or "("
+       * Due to universities API, country name should have (+) instead of ( ) empty space.
+       */
       let countryStrList = evt.source.value.replaceAll(',', '').split(' ');
       searchStr = countryStrList[this.searchStrIndex];
-
+      /**
+       * Looping to repeat request with a different search string to handle different cases of country names
+       * case 1: search param requires 1 word (ie: Albania) => req returns with data and loop breaks
+       * case 2: search param requires 2 words (ie: United+States) => 1st itiration returns no data, so retry till there's a data and break out of the loop
+       * case 3: search param requires more than 2 words (ie: United+Arab+Emirates) => repeat 3 times till there's a data and break out of the loop
+       *
+       * @method concatSearchStr(countryStrList,searchStr)
+       * This method concats a plus sign (+) and the next index's value of countryStrList to the searchStr and returns the updated searchStr to retry requesting data with new searchStr (countryName). If no data is returned, the method is called again and concats the next index's value of countryStrList
+       *
+       * @param countryStrList Country name as an array of strings, each string represents a word of the country name (ie: ['United', 'States', 'of', 'America'])
+       * @param searchStr which is initially the first string in the array
+       * @example given country: United Arab Emirates, countryStrList = ['United', 'Arab', 'Emirates']
+       * 1) first itiration: searchStr= 'United' => no universities found with this country name, retry with a different searchStr
+       * 2) second itiration: searchStr= 'United+Arab' => no universities found with this country name, retry with a different searchStr
+       * 3) third itiration: searchStr= 'United+Arab+Emirates' => data found! break the loop!
+       * @return updatedSearchStr
+       *
+       */
       for (this.searchStrIndex; this.searchStrIndex < 3; ) {
         searchStr = this.concatSerachStr(countryStrList, searchStr);
         await this._dataService
@@ -71,7 +95,6 @@ export class AppComponent implements OnInit {
             } else {
               this.searchStrIndex++;
               this.dataLoaded = false;
-              // this.noUniversitiesFound = true;
               console.error(
                 `No Data Found, retrying request for ${
                   this.searchStrIndex + 1
@@ -89,14 +112,18 @@ export class AppComponent implements OnInit {
     }
   }
 
+  /**
+   * A switch to handle different filtering cases
+   * @param e onFilterChange event
+   * @returns filterdUniversities[]
+   */
   onFilterChange(e: any) {
     switch (e.value) {
       case 'Name':
-        this.nameFC.valueChanges.subscribe((value) => {
+        this.nameFCSub = this.nameFC.valueChanges.subscribe((value) => {
           this.filteredUniversities = this.universities.filter(
             (uni) => uni.name.toLowerCase().indexOf(value.toLowerCase()) === 0
           );
-          console.log('case Name:', this.filteredUniversities);
         });
         break;
 
@@ -104,19 +131,16 @@ export class AppComponent implements OnInit {
         this.filteredUniversities = this.universities.filter(
           (uni) => uni.domains.length > 1
         );
-        console.log('case Mulitple Domains:', this.filteredUniversities);
         break;
 
       case 'Secure Website':
         this.filteredUniversities = this.universities.filter(
           (uni) => uni.web_pages[0].match('https') != null
         );
-        console.log('case secure website:', this.filteredUniversities);
         break;
 
       default:
         this.filteredUniversities = this.universities;
-        console.log('case default:', this.filteredUniversities);
         break;
     }
 
@@ -130,11 +154,27 @@ export class AppComponent implements OnInit {
   }
 
   //#region Private Helper Functions
-  private _filterCountries(name: string) {
-    return this.countries.filter(
-      (country) => country.name.toLowerCase().indexOf(name.toLowerCase()) === 0
+  private getCountries() {
+    this._dataService.countriesSubject.subscribe((countries) => {
+      this.countries = countries;
+    });
+  }
+  private dynamicallyFilterCountries() {
+    return this.countryFC.valueChanges.pipe(
+      startWith(''),
+      map((countryName) => {
+        return countryName
+          ? this.countries.filter(
+              (country) =>
+                country.name
+                  .toLowerCase()
+                  .indexOf(countryName.toLowerCase()) === 0
+            )
+          : this.countries.slice();
+      })
     );
   }
+
   private concatSerachStr(countryStrList: string, searchStr: string) {
     if (
       this.searchStrIndex > 0 &&
@@ -146,4 +186,8 @@ export class AppComponent implements OnInit {
     return searchStr;
   }
   //#endregion
+
+  ngOnDestroy(): void {
+    this.nameFCSub.unsubscribe();
+  }
 }
